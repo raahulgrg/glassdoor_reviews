@@ -35,49 +35,8 @@ label_data.head()
 label_data_new = label_data.loc[label_data.label_count == 1,:]
 label_data_new.shape
 
-#%% Representing Text as Numerical data
-#We will use CountVectorizer to "convert text into a matrix of token counts"
-#import
-from sklearn.feature_extraction.text import CountVectorizer
-#instantiate
-vect = CountVectorizer()
-#fit
-vect.fit(label_data_new.pp_sent)
-vect.get_feature_names()
-# This step deals with removal of all types of noisy entities present in the text.
-# Some Noise Removal happens at the method countvectoriser
-# language stopwords (commonly used words of a language – is, am, the, of, in etc),
-# URLs or links, social media entities (mentions, hashtags),
-# punctuations and industry specific words.
-# No punctuations
-# all words lowercase
-# No duplicatessettings
-
-# Transform training data into a 'document term matrix'
-label_data_dtm = vect.transform(label_data_new.pp_sent)
-label_data_dtm.shape
-#convert the sparse matrix into a dense matrix
-label_data_dtm.toarray()
-#examine the vocabulary and document-term matrix together
-pd.DataFrame(label_data_dtm.toarray(), columns = vect.get_feature_names())
-
-# transform testing data into a document-term matrix 
-#In order to make a prediction, 
-#the new observation must have the same features as the training observations,
-# both in number and meaning
-review_data.head()
-review_data['full_review'] = review_data.pros+review_data.cons
-review_data_dtm = vect.transform(review_data.full_review)
-review_data_dtm.toarray()
-pd.DataFrame(review_data_dtm.toarray(), columns = vect.get_feature_names())
-
-#Summary:
-#vect.fit(train) learns the vocabulary of the training data
-#vect.transform(train) uses the fitted vocabulary to build a document-term matrix from the training data
-#vect.transform(test) uses the fitted vocabulary to build a document-term matrix from the testing data (and ignores tokens it hasn't seen before)
 
 #%%Building Feature Matrix and response variable
-
 label_data_new.shape
 label_data_new.dtypes
 label_data_new.head()
@@ -111,20 +70,35 @@ print(X_test.shape)
 print(y_train.shape)
 print(y_test.shape)
 #%% Vectorising our dataset
+#import countvectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 #instantiate
+#We will use CountVectorizer to "convert text into a matrix of token counts"
 vect = CountVectorizer()
+# This step deals with removal of all types of noisy entities present in the text.
+# Some Noise Removal happens at the method countvectoriser
+# language stopwords (commonly used words of a language – is, am, the, of, in etc),
+# URLs or links, social media entities (mentions, hashtags),
+# punctuations and industry specific words.
+# No punctuations
+# all words lowercase
+# No duplicatessettings
+
 #Fit
 vect.fit(X_train)
 # learn training data vocabulary, then use it to create a document-term matrix
 X_train_dtm = vect.transform(X_train)
 # examine the document-term matrix# exami 
 X_train_dtm    
-# transform testing data (using fitted vocabulary) into a document-term matrix# trans 
+# transform testing data into a document-term matrix
 X_test_dtm = vect.transform(X_test)
 X_test_dtm
+#Summary:
+#vect.fit(train) learns the vocabulary of the training data
+#vect.transform(train) uses the fitted vocabulary to build a document-term matrix from the training data
+#vect.transform(test) uses the fitted vocabulary to build a document-term matrix from the testing data (and ignores tokens it hasn't seen before)
 
 #%% Building and Evaluating the Model
-
 # The multinomial Naive Bayes classifier is suitable for classification with discrete features  
 # import and instantiate a Multinomial Naive Bayes model
 from sklearn.naive_bayes import MultinomialNB
@@ -230,3 +204,37 @@ print(result)
 #Recurrent Convolutional Neural Network (RCNN)
 #Other Variants of Deep Neural Networks
 
+#%%#%% Representing The entire train data and then predict on review data
+#import
+#instantiate
+vect = CountVectorizer()
+#fit
+vect.fit(label_data_new.pp_sent)
+label_data_new.head()
+# Transform training data into a 'document term matrix'
+label_data_dtm = vect.transform(label_data_new.pp_sent)
+label_data_dtm.shape
+#convert the sparse matrix into a dense matrix
+label_data_dtm.toarray()
+#examine the vocabulary and document-term matrix together
+pd.DataFrame(label_data_dtm.toarray(), columns = vect.get_feature_names())
+
+# transform reviews data into a document-term matrix 
+review_data.head()
+review_data['full_review'] = review_data.pros+review_data.cons
+review_data_dtm = vect.transform(review_data.full_review)
+review_data_dtm.toarray()
+pd.DataFrame(review_data_dtm.toarray(), columns = vect.get_feature_names())
+
+
+#%% Implementing NB on Review data
+from sklearn.naive_bayes import MultinomialNB
+nb = MultinomialNB()
+# train the model using X_train_dtm
+nb.fit(label_data_dtm, label_data_new.label_num)
+# make class predictions for X_test_dtm# make  
+y_pred_class = nb.predict(review_data_dtm)
+# calculate accuracy of class predictions# 
+y_pred_class
+
+label_data_new.label.factorize()
